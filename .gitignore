@@ -1,0 +1,78 @@
+# ===========================
+# .NET Build Artifacts
+# ===========================
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.vs/
+.vs/
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Published output
+publish/
+*.Publish.xml
+
+# ===========================
+# ASP.NET / Secrets
+# ===========================
+appsettings.Development.json
+# Keep appsettings.json (with placeholder keys) but never commit real secrets
+# Use environment variables or user-secrets for real API keys
+
+# ===========================
+# Node / Frontend
+# ===========================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.pnpm-debug.log*
+dist/
+.cache/
+
+# ===========================
+# Python
+# ===========================
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+*.pyc
+
+# ===========================
+# OS & Editor
+# ===========================
+.DS_Store
+Thumbs.db
+Desktop.ini
+*.swp
+*.swo
+*~
+
+# VS Code (keep tasks.json and settings — useful for team)
+# .vscode/  <- intentionally NOT ignored
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# ===========================
+# Logs & Temp
+# ===========================
+*.log
+*.tmp
+*.bak

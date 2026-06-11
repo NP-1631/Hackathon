@@ -1,0 +1,11 @@
+{
+  "name": "alpharag-frontend",
+  "version": "1.0.0",
+  "description": "AlphaRAG Frontend - Team Alpha RAG AI Assistant UI",
+  "scripts": {
+    "start": "npx serve . -p 3000",
+    "dev": "npx serve . -p 3000 --no-clipboard"
+  },
+  "keywords": ["rag", "ai", "chatbot"],
+  "author": "Team Alpha"
+}
