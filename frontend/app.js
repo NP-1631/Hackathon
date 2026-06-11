@@ -1,5 +1,9 @@
-// Backend API base URL - update this if your backend runs on a different port
-const API_BASE_URL = 'http://localhost:5174';
+// Backend API base URL
+// Production: window.BACKEND_URL is set by frontend/config.js (your Render URL)
+// Local dev:  falls back to http://localhost:5174
+const API_BASE_URL = (typeof window !== 'undefined' && window.BACKEND_URL)
+    ? window.BACKEND_URL
+    : 'http://localhost:5174';
 
 document.addEventListener('DOMContentLoaded', () => {
     // --- DOM Elements ---
@@ -19,19 +23,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearSearchHistoryBtn = document.getElementById('clear-search-history-btn');
     const newChatBtn = document.getElementById('new-chat-btn');
     const chatSessionsList = document.getElementById('chat-sessions-list');
-    
+
     // Status elements
     const healthIndicator = document.getElementById('health-indicator');
     const healthText = document.getElementById('health-text');
     const llmProvider = document.getElementById('llm-provider');
     const embeddingProvider = document.getElementById('embedding-provider');
     const docsFolder = document.getElementById('docs-folder');
-    
+
     let sessions = [];
     let currentSessionId = '';
     const SESSIONS_KEY = 'alpharag_chat_sessions';
     const CURRENT_SESSION_ID_KEY = 'alpharag_current_session_id';
- 
+
     let searchHistory = [];
     const SEARCH_HISTORY_KEY = 'alpharag_search_history';
 
@@ -59,9 +63,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Close sidebar on mobile when clicking outside
         document.addEventListener('click', (e) => {
-            if (window.innerWidth <= 900 && 
-                !sidebar.contains(e.target) && 
-                !mobileToggleBtn.contains(e.target) && 
+            if (window.innerWidth <= 900 &&
+                !sidebar.contains(e.target) &&
+                !mobileToggleBtn.contains(e.target) &&
                 sidebar.classList.contains('active')) {
                 sidebar.classList.remove('active');
             }
@@ -121,12 +125,12 @@ document.addEventListener('DOMContentLoaded', () => {
             adjustTextareaHeight();
             btnSend.disabled = false;
             userInput.focus();
-            
+
             // Close sidebar on mobile
             if (window.innerWidth <= 900) {
                 sidebar.classList.remove('active');
             }
-            
+
             submitMessage();
         });
 
@@ -177,9 +181,9 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch(`${API_BASE_URL}/health`);
             if (!response.ok) throw new Error('API server returned error');
-            
+
             const data = await response.json();
-            
+
             // Render health details
             if (healthText) healthText.textContent = data.status || 'Healthy';
             if (llmProvider) llmProvider.textContent = data.llmProvider || '-';
@@ -188,7 +192,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 docsFolder.textContent = data.docsFolder || 'docs';
                 docsFolder.title = `Folder Path: ${data.docsFolder}\nChunk Size: ${data.chunkSize}\nOverlap: ${data.chunkOverlap}`;
             }
-            
+
             setHealthState('healthy');
         } catch (error) {
             console.error('System Health check failed:', error);
@@ -219,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ingestBtn.disabled = true;
         ingestBtnText.textContent = 'Indexing...';
         ingestSpinner.classList.remove('icon-hidden');
-        
+
         appendSystemMessage('System triggered manual document ingestion. Re-indexing docs folder...');
 
         try {
@@ -229,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const result = await response.json();
-            
+
             if (response.ok) {
                 showToast(result.message || 'Ingestion completed successfully!', 'success');
                 appendSystemMessage('Document re-indexing completed successfully. Vector index updated.');
@@ -259,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Add user message to UI
         appendMessage('user', text);
-        
+
         // Clear input field
         userInput.value = '';
         adjustTextareaHeight();
@@ -291,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             const data = await response.json();
-            
+
             // Remove typing indicator
             removeTypingIndicator(typingId);
 
@@ -313,7 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const messageBubble = document.createElement('div');
         messageBubble.classList.add('message-bubble', `message-bubble-${role}`);
-        
+
         // Process message content markdown
         messageBubble.innerHTML = formatMessageContent(content);
 
@@ -321,15 +325,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (role === 'ai' && sources && sources.length > 0) {
             const metaDiv = document.createElement('div');
             metaDiv.classList.add('message-meta');
-            
+
             const sourcesContainer = document.createElement('div');
             sourcesContainer.classList.add('sources-container');
-            
+
             const label = document.createElement('span');
             label.classList.add('sources-label');
             label.textContent = 'Sources: ';
             sourcesContainer.appendChild(label);
-            
+
             sources.forEach(src => {
                 const badge = document.createElement('span');
                 badge.classList.add('source-badge');
@@ -344,7 +348,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         messageRow.appendChild(messageBubble);
         chatFeed.appendChild(messageRow);
-        
+
         // Save to State history
         saveToHistory({ role, content, sources });
         scrollToBottom();
@@ -360,7 +364,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         messageRow.appendChild(messageBubble);
         chatFeed.appendChild(messageRow);
-        
+
         saveToHistory({ role: 'system', content });
         scrollToBottom();
     }
@@ -377,7 +381,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const typingIndicator = document.createElement('div');
         typingIndicator.classList.add('typing-indicator');
-        
+
         for (let i = 0; i < 3; i++) {
             const dot = document.createElement('div');
             dot.classList.add('typing-dot');
@@ -407,7 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Simple Custom Markdown Formatter for rendering lists, code blocks, bold text
     function formatMessageContent(text) {
         if (!text) return '';
-        
+
         let html = text;
 
         // Escape HTML entities to prevent XSS (except for our custom markdown conversions)
@@ -458,7 +462,7 @@ document.addEventListener('DOMContentLoaded', () => {
         html = html.split('\n\n').map(para => {
             const trimmedPara = para.trim();
             if (!trimmedPara) return '';
-            
+
             // Check if it's already list html or code block html
             if (trimmedPara.startsWith('<pre>') || trimmedPara.startsWith('<ul>') || trimmedPara.startsWith('<li>') || trimmedPara.startsWith('</ul>')) {
                 return trimmedPara;
@@ -470,11 +474,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // --- Local Storage & Session Management ---
-    
+
     function loadSessions() {
         const storedSessions = localStorage.getItem(SESSIONS_KEY);
         const storedActiveId = localStorage.getItem(CURRENT_SESSION_ID_KEY);
-        
+
         if (storedSessions) {
             try {
                 sessions = JSON.parse(storedSessions);
@@ -483,7 +487,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 sessions = [];
             }
         }
-        
+
         if (sessions.length === 0) {
             // Create a default first session
             const defaultId = 'session_' + Date.now();
@@ -502,7 +506,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentSessionId = sessions[0].id;
             }
         }
-        
+
         saveSessions();
         renderSessionsList();
         renderActiveSessionMessages();
@@ -564,7 +568,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderActiveSessionMessages() {
         chatFeed.innerHTML = '';
         const activeSession = sessions.find(s => s.id === currentSessionId);
-        
+
         if (!activeSession || activeSession.messages.length === 0) {
             chatFeed.appendChild(welcomeCard);
             welcomeCard.style.display = 'block';
@@ -583,7 +587,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function deleteSession(sessionId) {
         sessions = sessions.filter(s => s.id !== sessionId);
-        
+
         if (sessions.length === 0) {
             const newSessionId = 'session_' + Date.now();
             sessions.push({
@@ -607,7 +611,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const activeSession = sessions.find(s => s.id === currentSessionId);
         if (activeSession) {
             activeSession.messages.push(message);
-            
+
             // Name the chat after the first user message
             if (activeSession.title === 'New Chat' && message.role === 'user') {
                 let text = message.content.trim();
@@ -616,7 +620,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 activeSession.title = text;
             }
-            
+
             saveSessions();
             renderSessionsList();
         }
@@ -646,15 +650,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (role === 'ai' && sources && sources.length > 0) {
             const metaDiv = document.createElement('div');
             metaDiv.className = 'message-meta';
-            
+
             const sourcesContainer = document.createElement('div');
             sourcesContainer.className = 'sources-container';
-            
+
             const label = document.createElement('span');
             label.className = 'sources-label';
             label.textContent = 'Sources: ';
             sourcesContainer.appendChild(label);
-            
+
             sources.forEach(src => {
                 const badge = document.createElement('span');
                 badge.className = 'source-badge';
@@ -687,7 +691,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const container = document.getElementById('toast-container');
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
-        
+
         // Get visual icon for toast type
         let iconHtml = '';
         if (type === 'success') {
@@ -702,9 +706,9 @@ document.addEventListener('DOMContentLoaded', () => {
             ${iconHtml}
             <div>${message}</div>
         `;
-        
+
         container.appendChild(toast);
-        
+
         // Animate out and remove
         setTimeout(() => {
             toast.style.animation = 'slideInRight 0.3s reverse forwards';
